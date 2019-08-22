@@ -8,6 +8,6 @@
 #include "/usr/include/postgresql/libpq-fe.h"
 
 const char *senderPath="sudo python3 /home/park/workspace/dust/PMS7003/sender.py";
-const char *csvPath="/home/park/workspace/dust/csv/";
+const char *csvPath="/home/park/workspace/dust/csv/dust.csv";
 
 

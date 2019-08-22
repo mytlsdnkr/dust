@@ -124,27 +124,6 @@ class PMS7003(object):
       return data
 
 
-'''def print_serial(self, buffer):
-
-    chksum = self.chksum_cal(buffer)
-    data = self.unpack_data(buffer)
-
-    print ("============================================================================")
-    print ("Header : %c %c \t\t | Frame length : %s" % (data[self.HEADER_HIGH], data[self.HEADER_LOW], data[self.FRAME_LENGTH]))
-    print ("PM 1.0 (CF=1) : %s\t | PM 1.0 : %s" % (data[self.DUST_PM1_0_CF1], data[self.DUST_PM1_0_ATM]))
-    print ("PM 2.5 (CF=1) : %s\t | PM 2.5 : %s" % (data[self.DUST_PM2_5_CF1], data[self.DUST_PM2_5_ATM]))
-    print ("PM 10.0 (CF=1) : %s\t | PM 10.0 : %s" % (data[self.DUST_PM10_0_CF1], data[self.DUST_PM10_0_ATM]))
-    print ("0.3um in 0.1L of air : %s" % (data[self.DUST_AIR_0_3]))
-    print ("0.5um in 0.1L of air : %s" % (data[self.DUST_AIR_0_5]))
-    print ("1.0um in 0.1L of air : %s" % (data[self.DUST_AIR_1_0]))
-    print ("2.5um in 0.1L of air : %s" % (data[self.DUST_AIR_2_5]))
-    print ("5.0um in 0.1L of air : %s" % (data[self.DUST_AIR_5_0]))
-    print ("10.0um in 0.1L of air : %s" % (data[self.DUST_AIR_10_0]))
-    print ("Reserved F : %s | Reserved B : %s" % (data[self.RESERVEDF],data[self.RESERVEDB]))
-    print ("CHKSUM : %s | read CHKSUM : %s | CHKSUM result : %s" % (chksum, data[self.CHECKSUM], chksum == data[self.CHECKSUM]))
-    print ("============================================================================")
-
-'''
 
 # UART / USB Serial : 'dmesg | grep ttyUSB'
 USB0 = '/dev/ttyUSB0'
@@ -159,10 +138,6 @@ Speed = 9600
 
 # example
 if __name__=='__main__':
-
-
-
-
     #serial setting 
     ser = serial.Serial(SERIAL_PORT, Speed, timeout = 1)
     now=int(datetime.now().timestamp())
@@ -173,7 +148,6 @@ if __name__=='__main__':
     buffer = ser.read(1024)
     data = dust.unpack_data(buffer)
     if(dust.protocol_chk(buffer)):
-
         new_str=[]
         new_str.append(str(now))
         new_str.append(",")
