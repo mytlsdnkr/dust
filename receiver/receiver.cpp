@@ -3,6 +3,53 @@
 #include "receiver.h"
 #include "HTTPRequest.hpp"
 using namespace std;
+char xy[30];
+void getLocation(){
+
+	system("curl -XGET http://checkip.dyndns.org/ > /dev/null 2>&1 > ip.txt");
+	int fd;
+	char ipfile[128];
+	fd=open("ip.txt",O_RDONLY);
+	read(fd,ipfile,128);
+	close(fd);
+	ipfile[strlen(ipfile)-1]='\0';
+	string ip(ipfile);
+
+	ipfile[0]='\0';
+	int k=0;
+
+	for(char ch : ip){
+		if((ch>='0' && ch<='9') || ch=='.'){
+			ipfile[k++]=ch;
+		}
+	}
+
+	ipfile[k]='\0';
+	
+	char getLocation[100]="curl ipinfo.io/";
+	char curl[256];
+	sprintf(curl,"%s%s?=token=c704fc03805be2 > /dev/null 2>&1 > location.txt",getLocation,ipfile);
+	system(curl);
+	fd=open("location.txt",O_RDONLY);
+	char location[256];
+	read(fd,location,256);
+
+	string realLocation(location);
+	string::size_type n;
+
+	n=realLocation.find("\"loc\"");
+	n+=7;
+	int i=n+1;
+	k=0;
+	for(i;;i++){
+		if(realLocation[i]=='\"'){
+			break;
+		}
+		xy[k++]=realLocation[i];
+	}
+
+
+}
 
 void getValuebyAPI(PGconn *conn){
 	int i;
@@ -119,6 +166,14 @@ void getValuebyAPI(PGconn *conn){
 	close(apifd);
 	int PM10=atoi(getPM10);
 	int PM2_5=atoi(getPM2_5);
+	if(getPM10[0]=='-'){
+		PM10=-1;
+	}
+
+	if(getPM2_5[0]=='-'){
+		PM2_5=-1;
+	}
+
 	char query[256];
 	sprintf(query,"insert into api(timestamp,pm10,pm2_5) values(%d,%d,%d)",unixTime,PM10,PM2_5);
 	res=PQexec(conn,query);
@@ -149,11 +204,13 @@ int main(){
 		exit(1);
 	}
 	getValuebyAPI(conn);
+			getLocation();
 
 	while(1){
 		time_t current_time=time(NULL);
 		if(current_time>=(last_time+3600)){
 			last_time=current_time;
+			getLocation();
 			getValuebyAPI(conn);
 		}
 		//파일 오픈 및 파이프 오픈
@@ -167,9 +224,13 @@ int main(){
 			pclose(fp);
 			continue;
 		}
+		buff[strlen(buff)-1]='\0';
+		char re[256];
 		//파이프를 통해 받은 파일을 csv형태로 변환
 		//csv파일에 내용 담기
-		write(fd,buff,strlen(buff));
+		sprintf(re,"%s,%s\n",buff,xy);
+		write(fd,re,strlen(re));
+		//write(fd,buff,strlen(buff));
 		//데이터베이스에 담기 위한 strtok 과정
 		result=strtok(buff,",");
 		while(result!=NULL){
@@ -177,7 +238,8 @@ int main(){
 			result=strtok(NULL,",");
 		}
 		i=0;
-		sprintf(query,"insert into dust(timestamp,pm1_0,pm2_5,pm10_0) values(%d,%d,%d,%d)",dust[0],dust[1],dust[2],dust[3]);
+		
+		sprintf(query,"insert into dust(timestamp,pm1_0,pm2_5,pm10_0,location) values(%d,%d,%d,%d,'%s')",dust[0],dust[1],dust[2],dust[3],xy);
 		res=PQexec(conn,query);
 		if(PQresultStatus(res)!=PGRES_COMMAND_OK){
 			fprintf(stderr,"insert command failed:%s",PQerrorMessage(conn));
@@ -187,13 +249,9 @@ int main(){
 		memset(buff,'\0',sizeof(buff));
 		pclose(fp);
 		close(fd);
+		
 	}
 
 	PQfinish(conn);
-
-
-
-
-
 	return 0;
 }

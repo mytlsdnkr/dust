@@ -1,0 +1,6 @@
+{
+  "error": {
+    "title": "Wrong ip",
+    "message": "Please provide a valid IP address"
+  }
+}
