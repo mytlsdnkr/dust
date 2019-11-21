@@ -1,3 +1,6 @@
 *.out
 *.csv
 receiver
+*.jpg
+*.h5
+*.txt
