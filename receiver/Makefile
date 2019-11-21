@@ -1,6 +1,3 @@
-#db:
-#gcc -o receiver receiver.c -I/usr/include/postgresql -lpq 
-
-db:
+receive:
 	g++ -o receiver receiver.cpp -I/usr/include/postgresql -lpq 
 

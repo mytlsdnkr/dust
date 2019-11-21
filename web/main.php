@@ -1,182 +1,141 @@
 <?php
-
-
-
+//header("Content-Type:application/json");
 include 'include.php';
-
-
-
 include ("integrations/php/fusioncharts-wrapper/fusioncharts.php");
 ?>
 <html>
-<link rel="stylesheet" href="maincss.css">
 <head>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.topnav {
+  overflow: hidden;
+  background-color: #333;
+}
+
+.topnav a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+.topnav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.topnav a.active {
+  background-color: #4CAF50;
+  color: white;
+}
+</style>
 <meta charset="utf-8">
-<title>현재 미세먼지 농도</title>
+<title>실시간 미세먼지 농도</title>
 <script src="js/fusioncharts.js"></script>
 <script src="js/themes/fusioncharts.theme.fusion.js"></script>
 </head>
 <body>
-<div >
-<ul id="main-menu" style="width:100vh;" >
-<li><a href="main.php">실시간 농도
-<li><a href="#">미세먼지</a>
-<ul id="sub-menu">
-<li><a href="#">최대 수치</a></li>
-<li><a href="#">최소 수치</a></li>
-<li><a href="#">평균</a></li>
-</ul>
-</li>
-<li><a href="#">초미세먼지</a>
-<ul id="sub-menu1">
-<li><a href="#">최대 수치</a></li>
-<li><a href="#">최소 수치</a></li>
-<li><a href="#">평균</a></li>
-</ul>
-</li>
-</ul>
-</li>
+
+<div class="topnav">
+  <a class="active" href="main">Realtime</a>
+  <a href="api">External</a>
+  <a href="calender/average">Average</a>
+  <a href="calender/average_api">External average</a>
+  <a href="product/product">Product</a>
+  <a href="forecast/forecast">Forecast</a>
 </div>
-<br>
-<br>
-<br>
-
-<?php
-
-$query="select * from dust order by timestamp desc limit 1";
 
 
-$json=$_POST['data'];
-echo $json;
-$result=pg_query($query) or die('Query failed:' . pg_last_error());
-$row=pg_fetch_row($result);
+<div id="graph1" style="height:90%; width:90%"></div>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
 
 
-$da=$_POST['json'];
-$newJsonString=json_encode($da);
-
-//PM1.0
-$PM1_0Chart=array (
-		"chart"=> array(
-			"caption"=> "현재 초미세먼지 농도(PM1.0)",
-			"upperlimit"=> "0",
-			"lowerlimit"=> "500",
-			"usecolornameasvalue"=> "1",
-			"placevaluesinside"=> "1",
-			"valuefontsize"=> "20",
-			"theme"=> "fusion"
-			)
-		);
-
-$PM1_0DataObj=array("color"=>array(
-			["minvalue"=>"0","maxValue"=>"15","label"=>"좋음($row[1]μm)","code"=>"#2359C4"],
-			["minvalue"=>"16","maxValue"=>"35","label"=>"보통($row[1]μm)","code"=>"#01B56E"],
-			["minvalue"=>"36","maxValue"=>"75","label"=>"나쁨($row[1]μm)","code"=>"#F5C932"],
-			["minvalue"=>"76","maxValue"=>"500","label"=>"매우나쁨($row[1]μm)","code"=>"#DA3539"]
-
-			));
-
-$PM1_0Chart["ColorRange"]=$PM1_0DataObj;
-$PM1_0Chart["value"]=$row[1];
-$PM1_0EncodeData=json_encode($PM1_0Chart);
-$PM1_0widget=new FusionCharts("bulb","1","300","300","PM1_0","json",$PM1_0EncodeData);
-$PM1_0widget->render();
-
-//PM1.0
-//
-//
-//PM2.5
-$PM2_5Chart=array (
-		"chart"=> array(
-			"caption"=> "현재 초미세먼지 농도(PM2.5)",
-			"upperlimit"=> "0",
-			"lowerlimit"=> "500",
-			"usecolornameasvalue"=> "1",
-			"placevaluesinside"=> "1",
-			"valuefontsize"=> "20",
-			"theme"=> "fusion"
-			)
-		);
-
-$PM2_5DataObj=array("color"=>array(
-			["minvalue"=>"0","maxValue"=>"15","label"=>"좋음($row[2]μm)","code"=>"#2359C4"],
-			["minvalue"=>"16","maxValue"=>"35","label"=>"보통($row[2]μm)","code"=>"#01B56E"],
-			["minvalue"=>"36","maxValue"=>"75","label"=>"나쁨($row[2]μm)","code"=>"#F5C932"],
-			["minvalue"=>"76","maxValue"=>"500","label"=>"매우나쁨($row[2]μm)","code"=>"#DA3539"]
-
-			));
-
-$PM2_5Chart["ColorRange"]=$PM2_5DataObj;
-$PM2_5Chart["value"]=$row[2];
-$PM2_5EncodeData=json_encode($PM2_5Chart);
-$PM2_5widget=new FusionCharts("bulb","2","300","300","PM2_5","json",$PM2_5EncodeData);
-$PM2_5widget->render();
-//PM2.5
-$PM10_0Chart=array (
-		"chart"=> array(
-			"caption"=> "현재 미세먼지 농도(PM10.0)",
-			"upperlimit"=> "0",
-			"lowerlimit"=> "500",
-			"usecolornameasvalue"=> "1",
-			"placevaluesinside"=> "1",
-			"valuefontsize"=> "20",
-			"theme"=> "fusion"
-			)
-		);
-
-$PM10_0DataObj=array("color"=>array(
-			["minvalue"=>"0","maxValue"=>"30","label"=>"좋음($row[3]μm)","code"=>"#2359C4"],
-			["minvalue"=>"31","maxValue"=>"80","label"=>"보통($row[3]μm)","code"=>"#01B56E"],
-			["minvalue"=>"81","maxValue"=>"150","label"=>"나쁨($row[3]μm)","code"=>"#F5C932"],
-			["minvalue"=>"151","maxValue"=>"500","label"=>"매우나쁨($row[3]μm)","code"=>"#DA3539"]
-
-			));
-
-$PM10_0Chart["ColorRange"]=$PM10_0DataObj;
-$PM10_0Chart["value"]=$row[2];
-$PM10_0EncodeData=json_encode($PM10_0Chart);
-$PM10_0widget=new FusionCharts("bulb","3","300","300","PM10_0","json",$PM10_0EncodeData);
-$PM10_0widget->render();
-$Location=$row[4];
-
-pg_close($conn);
-?>
-<?php
-
-header("Refresh:3");
-?>
-<div id="PM1_0" style="width:300px;height:300px;text-align:center;">PM1_0</div>
-<div id="PM2_5" style="width:300px;height:300px;text-align:center;">PM2_5</div>
-<div id="PM10_0" style="width:300px;height:300px;text-align:center;">PM10_0</div>
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=22e32ab9f7fb50c89b70eb105fa8dbb0"></script>
-<div id="map" style="width:500px;height:400px;text-align=center;"></div>
 <script>
-//가져온 데이터를 string to number 형변환 후 좌표에 넣는다.
-var la='<?=$Location?>';
-var xy=la.split(',');
-xy[0]*=1;
-xy[1]*=1;
-//지도 그리는 코드
 
-var container=document.getElementById('map');
-var options={
-center: new kakao.maps.LatLng(xy[0],xy[1]),
-		level:2
-};
-var map=new kakao.maps.Map(container,options);
-var markerPosition=new kakao.maps.LatLng(xy[0],xy[1]);
-var marker=new kakao.maps.Marker({
-position:markerPosition
-});
-marker.setMap(map);
+      Highcharts.setOptions({
+                global: {
+                    useUTC: false
+                }
+            });
+           
+            var chart;
+            function requestData() {
+                $.ajax({
+                     url: 'ajax.php',
+                    success: function (point) {
+                        var series = chart.series[0],
+                            shift = series.data.length > 20;
+
+						var series1=chart.series[1],
+						shift1=series1.data.length>20;
+
+						var series2=chart.series[2],
+						shift2=series2.data.length>20;
+
+
+                        var timestamp = point[0];
+                        var date = new Date(timestamp);
+						var x=point[0];
+						var pm1_0=Number(point[1]);
+						var pm2_5=Number(point[2]);
+						var pm10=Number(point[3]);
+                        chart.series[0].addPoint([x,pm1_0], true, shift);
+                        chart.series[1].addPoint([x,pm2_5], true, shift1);
+                        chart.series[2].addPoint([x,pm10], true, shift2);
+
+                       
+                        setTimeout(requestData, 1000);
+                    },
+                    cache: false
+                });
+            }
+           
+            $(function () {
+                chart = new Highcharts.Chart({
+                    chart: {
+                        renderTo: 'graph1',
+                        defaultSeriesType: 'spline',
+                        events: {
+                            load: requestData
+                        }
+                    },
+                    title: {
+                        text: '미세먼지 농도 변화 그래프'
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        tickPixelInterval: 150,
+                        maxZoom: 20 * 1000
+                    },
+                    yAxis: {
+                        minPadding: 0.2,
+                        maxPadding: 0.2,
+                        title: {
+                            text: 'Value',
+                            margin: 80
+                        }
+                    },
+                    series: [{
+                        name: 'PM1.0',
+                        data: []
+                    },
+							{name:'PM2.5',data:[]},
+							{name:'PM10',data:[]}
+					],
+                });
+            });
+
 </script>
-<div style="text-align:right;">
-<?php
-echo "마지막 측정 시각(";
-echo date("Y-m-d h:i:s",$row[0]);
-echo ")";
-?>
-</div>
 </body>
 
 </html>

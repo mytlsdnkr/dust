@@ -1,1 +1,0 @@
-<html><head><title>Current IP Check</title></head><body>Current IP Address: 39.127.62.82</body></html>
